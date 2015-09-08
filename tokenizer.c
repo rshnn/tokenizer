@@ -69,13 +69,28 @@ char *TKGetNextToken( TokenizerT * tk ) {
 int main(int argc, char **argv) {
 
 	
-	/* Input check */
+	
+	/* Argument validity check */
+
+	char* argNumErr = "Incorrect number of arguments given.  Use \"tokenizer -help\" for proper usage.\n";  
+	switch(argc){
+
+		case 2:
+			if ( strcmp(argv[1], "-help")==0 )
+			{
+				fprintf(stderr, "\nProper usage:  tokenizer \" argument \"\n\n");
+			}
+			return -1;
+	
+		default: 
+			fprintf(stderr, "%s\n", argNumErr);
+			return -1;
+	}
 
 
 	char* temp = argv[1];
 	printf("%s\n",temp);
 
-	int start = 0;
 	int end = 0;
 	int i = 0;
 	for(i=0; i<strlen(temp); i++){
