@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
 
 		if(temp[i] == ' '){
 			end = i;
-			printf("\n");
+			printf("<---  This is a separate token \n");
 		}
 	}
 	
