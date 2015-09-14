@@ -18,8 +18,13 @@ struct TokenizerT_ {
 	int startindex;
 	int endindex;
 };
-
 typedef struct TokenizerT_ TokenizerT;
+
+
+
+
+
+
 
 /*
  * TKCreate creates a new TokenizerT object for a given token stream
@@ -38,46 +43,29 @@ typedef struct TokenizerT_ TokenizerT;
 TokenizerT *TKCreate( char * ts ) {
 
 	/* Creation of first token from input */
-	int i = 0;
 	int end = 0;
-	TokenizerT* tokenizer = 0;
+	TokenizerT* tokenizer = (TokenizerT*)malloc(sizeof(TokenizerT *));
 
+	for(int i=0;i<strlen(ts);i++){
+		char c = ts[i];
 
-	tokenizer->fullInput = (char*)malloc(sizeof(ts));
-	tokenizer->fullInput = ts;
-
-	for(i; i<strlen(ts); i++){
-
-		/* Checking token type */
-		if(isdigit(ts[i])){
-
-			if(ts[i] == '0'){
-				printf("This is a zero.\n");
-			}
-
-
-			else{
-				printf("This is a digit.\n");
-			}
-		}
-
-
-
-		if(isspace(ts[i])){
+		if(isspace(c)==1){
 			end = i;
-			break;
 		}
+
 
 	}
 
 
 
-	tokenizer = (TokenizerT*)malloc(sizeof(TokenizerT *));
 	tokenizer->startindex = 0;
 	tokenizer->endindex = end;
-	tokenizer->type = (char *)malloc(sizeof(char)*(4));
-	tokenizer->token = "This is the token yo";
+	tokenizer->fullInput = ts;
 
+	int size = tokenizer->endindex-tokenizer->startindex;
+	tokenizer->token = (char*)malloc(size+1);
+	strncpy(tokenizer->token, ts, size); 
+	tokenizer->token[size+1] = '\0';
 
 	return tokenizer;
 
@@ -115,8 +103,10 @@ char *TKGetNextToken( TokenizerT * tk ) {
 /* This function will print the information of a token in standard output. */
 void printToken(TokenizerT* ts){
 
-	printf("\nThe full input: %s\nThe token stored: %s",ts->fullInput,ts->token);
+	printf("\nThe full input: %s\nThe token stored: %s\n",ts->fullInput,ts->token);
 }
+
+
 
 
 /* Agument validity checking.  Includes -help option. */
@@ -144,6 +134,7 @@ void argCheck(int argc, char** argv){
 
 
 
+
 /*
  * main will have a string argument (in argv[1]).
  * The string argument contains the tokens.
@@ -159,11 +150,6 @@ int main(int argc, char **argv) {
 
 
 	TokenizerT* tokenizer = TKCreate(argv[1]);
-
-
-
-
-
 	printToken(tokenizer);
 
 	
