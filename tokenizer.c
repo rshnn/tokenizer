@@ -41,6 +41,9 @@ TokenizerT *TKCreate( char * ts ) {
 	int i = 0;
 	int end = 0;
 	TokenizerT* tokenizer = 0;
+
+
+	tokenizer->fullInput = (char*)malloc(sizeof(ts));
 	tokenizer->fullInput = ts;
 
 	for(i; i<strlen(ts); i++){
