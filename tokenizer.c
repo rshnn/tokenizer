@@ -41,34 +41,16 @@ typedef struct TokenizerT_ TokenizerT;
  */
 
 TokenizerT *TKCreate( char * ts ) {
-
-	/* Creation of first token from input */
-	int end = 0;
+	
 	TokenizerT* tokenizer = (TokenizerT*)malloc(sizeof(TokenizerT *));
 
-	for(int i=0;i<strlen(ts);i++){
-		char c = ts[i];
-
-		if(isspace(c)==1){
-			end = i;
-		}
-
-
-	}
-
-
-
 	tokenizer->startindex = 0;
-	tokenizer->endindex = end;
+	tokenizer->endindex = 0;
 	tokenizer->fullInput = ts;
-
-	int size = tokenizer->endindex-tokenizer->startindex;
-	tokenizer->token = (char*)malloc(size+1);
-	strncpy(tokenizer->token, ts, size); 
-	tokenizer->token[size+1] = '\0';
+	tokenizer->token = NULL;
+	tokenizer->type = NULL;
 
 	return tokenizer;
-
 
 }
 
@@ -96,7 +78,26 @@ void TKDestroy( TokenizerT * tk ) {
 
 char *TKGetNextToken( TokenizerT * tk ) {
 
-  return NULL;
+	/* Token is broken off at spaces and C-keywords*/
+	char* input = tk->fullInput;
+	printf("\n\t%s\n",input);
+	int i = 0;
+
+	for(i; i<strlen(input);i++){
+
+		if(isspace(input[i]) == 1){
+			tk->endindex = i;
+			printf("Found the space at %i",i);
+			break;
+		}
+	}
+	
+	int size = tk->endindex - tk->startindex;
+	strncpy(tk->token, input,size);
+
+	printf("\n%i - %i %s\n",tk->startindex,tk->endindex, tk->token);
+  	
+  	return tk->token;
 }
 
 
@@ -104,6 +105,7 @@ char *TKGetNextToken( TokenizerT * tk ) {
 void printToken(TokenizerT* ts){
 
 	printf("\nThe full input: %s\nThe token stored: %s\n",ts->fullInput,ts->token);
+
 }
 
 
@@ -151,6 +153,9 @@ int main(int argc, char **argv) {
 
 	TokenizerT* tokenizer = TKCreate(argv[1]);
 	printToken(tokenizer);
+
+	char* test = TKGetNextToken(tokenizer);
+	printf("\n%s",test);
 
 	
   return 0;
