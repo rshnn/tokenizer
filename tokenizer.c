@@ -16,8 +16,7 @@ struct TokenizerT_ {
 	char* token;
 	char* inputCopy;
 
-	int startindex;
-	int endindex;
+	int parsingIndex;
 };
 typedef struct TokenizerT_ TokenizerT;
 
@@ -43,49 +42,50 @@ typedef struct TokenizerT_ TokenizerT;
 
 TokenizerT *TKCreate( char * ts ) {
 
-	int 	tsLength 		= 	strlen(ts);
-	char*	ts_ptr			= 	0;
-	int 	i 				=	0;
 	char* 	tokenBuffer 	= 	0;
-	TokenizerT*	tokenizer 	= 	0;
+	char*	tokentype		=	0;
+	TokenizerT*	tokenizer 	= 	(TokenizerT*)malloc(sizeof(TokenizerT));
 
+	
+	/* Finding heap space for the input string. 
+		NOT NEEDED.  INPUT CAN BE STATIC*/
+	/*
 	ts_ptr = (char*)malloc(sizeof(char)*(tsLength+1));
 	if(ts_ptr == NULL){
 		free(ts_ptr);
 		return NULL;
 	}
-	ts_ptr = ts;
+	ts_ptr = ts; 
+	*/
 
+
+	/* Finding heap space for the current token. */
 	tokenBuffer = (char*)malloc(sizeof(char)*1);
 	if(tokenBuffer == NULL){
-		free(ts_ptr);
 		free(tokenBuffer);
 		return NULL;
 	}
 
-	tokenizer->inputCopy = ts_ptr;
-	tokenizer->token = tokenBuffer;
+	/* Finding heap space for token type. */
+	tokentype = (char*)malloc(sizeof(char)*1);
+	if(tokentype == NULL){
+		free(tokenBuffer);
+		free(tokentype);
+		return NULL;
+	}
+
+
+
+
+	/* Intializing tokenizer structure. */
+	tokenizer->inputCopy 	= ts;
+	tokenizer->token 		= tokenBuffer;
+	tokenizer->type 		= tokentype;
+	tokenizer->parsingIndex = 0;
 	printf("The tokenizer was initialized.\n");
 
 
 	return tokenizer;
-
-
-/*
-	tokenizer->startindex = 0;
-	tokenizer->endindex = 0;
-	tokenizer->inputCopy = (char *)malloc(sizeof(char)*(tsLength+1));
-
-
-	tokenizer->token = (char*)malloc(sizeof(char));
-	tokenizer->type = (char*)malloc(sizeof(char));
-	tokenizer->token = tokenizer->type = " ";
-
-	printf("The tokenizer was initialized.\n");
-
-	return tokenizer;
-*/
-
 }
 
 /*
@@ -96,6 +96,9 @@ TokenizerT *TKCreate( char * ts ) {
  */
 
 void TKDestroy( TokenizerT * tk ) {
+	free(tk->type);
+	free(tk->token);
+	//free(tk->inputCopy);
 }
 
 /*
@@ -114,20 +117,32 @@ char *TKGetNextToken( TokenizerT * tk ) {
 
 	/* Token is broken off at spaces and C-keywords */
 
-	char* input = tk->inputCopy;
-	int i = 0;
+	char* 	input 	= tk->inputCopy;
+	int 	i 		= tk->parsingIndex;
+
+	if(i == strlen(input)+1){ 
+		printf("No more tokens in input.\n");
+		return 0;
+	}
 
 	for(i; i<strlen(input);i++){
 
+		printf("\t%c",input[i]);
 		if(isspace(input[i]) == 1){
-			printf("\tFound the space at %i\n",i);
+			//printf("\tFound the space at %i\n",i);
 			break;
 		}
+
 	}
-	
-	int size = i - tk->startindex;
-	tk->token = (char*)malloc((size+1));
-	strncpy(tk->token, input, size);
+
+
+	int size 	= i - tk->parsingIndex;
+	tk->token 	= (char*)realloc(tk->token,(size+1));
+	memcpy(tk->token, &input[tk->parsingIndex],size);
+	tk->token[size] = '\0';
+
+
+	tk->parsingIndex = i+1;
 
 
 
@@ -140,7 +155,10 @@ char *TKGetNextToken( TokenizerT * tk ) {
 /* This function will print the information of a token in standard output. */
 void printToken(TokenizerT* ts){
 
-	printf("\n---PRINTING\nThe full input: '%s'\nThe token is: '%s' of size %lu\n\n",ts->inputCopy, ts->token, strlen(ts->token));
+	printf("\n---PRINTING\n The full input: '%s'\n", ts->inputCopy);
+	printf(" The token is: '%s' of length %lu\n",ts->token, strlen(ts->token));
+	printf(" The parsing index is ( %i )\n\n", ts->parsingIndex);
+	
 
 }
 
@@ -190,13 +208,26 @@ int main(int argc, char **argv) {
 
 
 	char* test = TKGetNextToken(tokenizer);
-	printf("\nTKGetNextToken returns: '%s'\n\n",test);
 	printToken(tokenizer);
 
-	/*Why is the size so big*/
 
-	
-  return 0;
+	while(test != 0){
+		test = TKGetNextToken(tokenizer);
+		printToken(tokenizer);
+
+
+	}
+
+
+	/*  PROGRESS NOTES TO SELF:
+			-> Substrings separated by spaces completed.
+			-> Write basic type checker.  Use finite state machine design. 
+	*/
+
+
+
+	TKDestroy(tokenizer);	//fails for input
+  	return 0;
 }
 
 
