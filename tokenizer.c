@@ -95,7 +95,7 @@ char *TKGetNextToken( TokenizerT * tk ) {
 	tk->token = (char*)malloc(sizeof(char)*(size+1));
 	strncpy(tk->token, input,size);
 
-	printf("\n%i - %i %s\n",tk->startindex,i, tk->token);
+	printf("\n%i %s\n",size, tk->token);
 
   	return tk->token;
 }
