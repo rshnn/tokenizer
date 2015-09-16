@@ -42,13 +42,16 @@ typedef struct TokenizerT_ TokenizerT;
 
 TokenizerT *TKCreate( char * ts ) {
 	
-	TokenizerT* tokenizer = (TokenizerT*)malloc(sizeof(TokenizerT *));
+	TokenizerT* tokenizer = (TokenizerT*)malloc(sizeof(TokenizerT));
 
 	tokenizer->startindex = 0;
 	tokenizer->endindex = 0;
 	tokenizer->fullInput = ts;
-	//tokenizer->token = NULL;
-	tokenizer->type = NULL;
+	tokenizer->token = (char*)malloc(sizeof(char));
+	tokenizer->type = (char*)malloc(sizeof(char));
+	tokenizer->token = tokenizer->type = 0;
+
+	printf("The tokenizer was initialized.\n");
 
 	return tokenizer;
 
@@ -79,23 +82,27 @@ void TKDestroy( TokenizerT * tk ) {
 char *TKGetNextToken( TokenizerT * tk ) {
 
 	/* Token is broken off at spaces and C-keywords */
+
 	char* input = tk->fullInput;
-	printf("\n\t%s of length %lu\n",input, strlen(input));
 	int i = 0;
 
 	for(i; i<strlen(input);i++){
 
-		if(isspace(tk->fullInput[i]) == 1){
-			printf("Found the space at %i",i);
+		if(isspace(input[i]) == 1){
+			printf("\tFound the space at %i",i);
 			break;
 		}
 	}
 	
-	int size = i - tk->startindex;
-	tk->token = (char*)malloc(sizeof(char)*(size+1));
-	strncpy(tk->token, input,size);
 
-	printf("\n%i %s\n",size, tk->token);
+	int size = i - tk->startindex;
+	free(tk->token);
+	tk->token = (char*)malloc((size+1));
+	strncpy(tk->token, input, size);
+
+
+
+
 
   	return tk->token;
 }
@@ -104,7 +111,7 @@ char *TKGetNextToken( TokenizerT * tk ) {
 /* This function will print the information of a token in standard output. */
 void printToken(TokenizerT* ts){
 
-	printf("\nThe full input: %s\nThe token stored: %s\n",ts->fullInput,ts->token);
+	printf("\nThe full input: '%s'\nThe token is: '%s' of size %lu\n",ts->fullInput, ts->token, strlen(ts->token));
 
 }
 
@@ -148,14 +155,16 @@ int main(int argc, char **argv) {
 	
 	/* Argument validity check.  Include -help option */
 	argCheck(argc, argv);
-	
-
-
 	TokenizerT* tokenizer = TKCreate(argv[1]);
 	printToken(tokenizer);
 
+
+
 	char* test = TKGetNextToken(tokenizer);
-	printf("\n%s",test);
+	printf("\nTKGetNextToken returns: '%s'\n\n",test);
+	printToken(tokenizer);
+
+	/*Why is the size so big*/
 
 	
   return 0;
