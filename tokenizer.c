@@ -15,6 +15,7 @@ struct TokenizerT_ {
 	char* type;
 	char* token;
 	char* inputCopy;
+
 	int startindex;
 	int endindex;
 };
@@ -43,25 +44,26 @@ typedef struct TokenizerT_ TokenizerT;
 TokenizerT *TKCreate( char * ts ) {
 
 	int 	tsLength 		= 	strlen(ts);
-	char*	ts_temp			= 	0;
+	char*	ts_ptr			= 	0;
 	int 	i 				=	0;
 	char* 	tokenBuffer 	= 	0;
 	TokenizerT*	tokenizer 	= 	0;
 
-	ts_temp = (char*)malloc(sizeof(char)*(tsLength+1));
-	if(ts_temp == NULL){
-		free(ts_temp);
+	ts_ptr = (char*)malloc(sizeof(char)*(tsLength+1));
+	if(ts_ptr == NULL){
+		free(ts_ptr);
 		return NULL;
 	}
+	ts_ptr = ts;
 
 	tokenBuffer = (char*)malloc(sizeof(char)*1);
 	if(tokenBuffer == NULL){
-		free(ts_temp);
+		free(ts_ptr);
 		free(tokenBuffer);
 		return NULL;
 	}
 
-	tokenizer->inputCopy = ts_temp;
+	tokenizer->inputCopy = ts_ptr;
 	tokenizer->token = tokenBuffer;
 	printf("The tokenizer was initialized.\n");
 
@@ -83,7 +85,7 @@ TokenizerT *TKCreate( char * ts ) {
 
 	return tokenizer;
 */
-	
+
 }
 
 /*
