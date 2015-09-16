@@ -80,22 +80,22 @@ char *TKGetNextToken( TokenizerT * tk ) {
 
 	/* Token is broken off at spaces and C-keywords*/
 	char* input = tk->fullInput;
-	printf("\n\t%s\n",input);
+	printf("\n\t%s of length %lu\n",input, strlen(input));
 	int i = 0;
+	int end = 0;
 
 	for(i; i<strlen(input);i++){
 
-		if(isspace(input[i]) == 1){
-			tk->endindex = i;
+		if(isspace(tk->fullInput[i]) == 1){
 			printf("Found the space at %i",i);
-			break;
+			continue;
 		}
 	}
 	
-	int size = tk->endindex - tk->startindex;
+	int size = i - tk->startindex;
 	strncpy(tk->token, input,size);
 
-	printf("\n%i - %i %s\n",tk->startindex,tk->endindex, tk->token);
+	printf("\n%i - %i %s\n",tk->startindex,i, tk->token);
   	
   	return tk->token;
 }
