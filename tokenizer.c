@@ -14,7 +14,7 @@
 struct TokenizerT_ {
 	char* type;
 	char* token;
-	char* fullInput;
+	char* inputCopy;
 	int startindex;
 	int endindex;
 };
@@ -41,20 +41,49 @@ typedef struct TokenizerT_ TokenizerT;
  */
 
 TokenizerT *TKCreate( char * ts ) {
-	
-	TokenizerT* tokenizer = (TokenizerT*)malloc(sizeof(TokenizerT));
 
+	int 	tsLength 		= 	strlen(ts);
+	char*	ts_temp			= 	0;
+	int 	i 				=	0;
+	char* 	tokenBuffer 	= 	0;
+	TokenizerT*	tokenizer 	= 	0;
+
+	ts_temp = (char*)malloc(sizeof(char)*(tsLength+1));
+	if(ts_temp == NULL){
+		free(ts_temp);
+		return NULL;
+	}
+
+	tokenBuffer = (char*)malloc(sizeof(char)*1);
+	if(tokenBuffer == NULL){
+		free(ts_temp);
+		free(tokenBuffer);
+		return NULL;
+	}
+
+	tokenizer->inputCopy = ts_temp;
+	tokenizer->token = tokenBuffer;
+	printf("The tokenizer was initialized.\n");
+
+
+	return tokenizer;
+
+
+/*
 	tokenizer->startindex = 0;
 	tokenizer->endindex = 0;
-	tokenizer->fullInput = ts;
+	tokenizer->inputCopy = (char *)malloc(sizeof(char)*(tsLength+1));
+
+
 	tokenizer->token = (char*)malloc(sizeof(char));
 	tokenizer->type = (char*)malloc(sizeof(char));
-	tokenizer->token = tokenizer->type = 0;
+	tokenizer->token = tokenizer->type = " ";
 
 	printf("The tokenizer was initialized.\n");
 
 	return tokenizer;
-
+*/
+	
 }
 
 /*
@@ -83,20 +112,18 @@ char *TKGetNextToken( TokenizerT * tk ) {
 
 	/* Token is broken off at spaces and C-keywords */
 
-	char* input = tk->fullInput;
+	char* input = tk->inputCopy;
 	int i = 0;
 
 	for(i; i<strlen(input);i++){
 
 		if(isspace(input[i]) == 1){
-			printf("\tFound the space at %i",i);
+			printf("\tFound the space at %i\n",i);
 			break;
 		}
 	}
 	
-
 	int size = i - tk->startindex;
-	free(tk->token);
 	tk->token = (char*)malloc((size+1));
 	strncpy(tk->token, input, size);
 
@@ -111,7 +138,7 @@ char *TKGetNextToken( TokenizerT * tk ) {
 /* This function will print the information of a token in standard output. */
 void printToken(TokenizerT* ts){
 
-	printf("\nThe full input: '%s'\nThe token is: '%s' of size %lu\n",ts->fullInput, ts->token, strlen(ts->token));
+	printf("\n---PRINTING\nThe full input: '%s'\nThe token is: '%s' of size %lu\n\n",ts->inputCopy, ts->token, strlen(ts->token));
 
 }
 
