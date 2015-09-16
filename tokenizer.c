@@ -47,7 +47,7 @@ TokenizerT *TKCreate( char * ts ) {
 	tokenizer->startindex = 0;
 	tokenizer->endindex = 0;
 	tokenizer->fullInput = ts;
-	tokenizer->token = NULL;
+	//tokenizer->token = NULL;
 	tokenizer->type = NULL;
 
 	return tokenizer;
@@ -78,25 +78,25 @@ void TKDestroy( TokenizerT * tk ) {
 
 char *TKGetNextToken( TokenizerT * tk ) {
 
-	/* Token is broken off at spaces and C-keywords*/
+	/* Token is broken off at spaces and C-keywords */
 	char* input = tk->fullInput;
 	printf("\n\t%s of length %lu\n",input, strlen(input));
 	int i = 0;
-	int end = 0;
 
 	for(i; i<strlen(input);i++){
 
 		if(isspace(tk->fullInput[i]) == 1){
 			printf("Found the space at %i",i);
-			continue;
+			break;
 		}
 	}
 	
 	int size = i - tk->startindex;
+	tk->token = (char*)malloc(sizeof(char)*(size+1));
 	strncpy(tk->token, input,size);
 
 	printf("\n%i - %i %s\n",tk->startindex,i, tk->token);
-  	
+
   	return tk->token;
 }
 
