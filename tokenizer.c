@@ -128,7 +128,7 @@ char *TKGetNextToken( TokenizerT * tk ) {
 	for(i; i<strlen(input);i++){
 
 		printf("\t%c",input[i]);
-		if(isspace(input[i]) == 1){
+		if(input[i] == ' '){
 			//printf("\tFound the space at %i\n",i);
 			break;
 		}
