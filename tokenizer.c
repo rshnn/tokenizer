@@ -4,8 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <ctype.h>
+#include "fsm.h"
 
 /*
  * Tokenizer type.  You need to fill in the type as part of your implementation.
@@ -75,8 +75,6 @@ TokenizerT *TKCreate( char * ts ) {
 	}
 
 
-
-
 	/* Intializing tokenizer structure. */
 	tokenizer->inputCopy 	= ts;
 	tokenizer->token 		= tokenBuffer;
@@ -94,11 +92,11 @@ TokenizerT *TKCreate( char * ts ) {
  *
  * You need to fill in this function as part of your implementation.
  */
-
 void TKDestroy( TokenizerT * tk ) {
-	free(tk->type);
+	//free(tk->type);
 	free(tk->token);
 	//free(tk->inputCopy);
+	free(tk);
 }
 
 /*
@@ -129,23 +127,25 @@ char *TKGetNextToken( TokenizerT * tk ) {
 
 		printf("\t%c",input[i]);
 		if(input[i] == ' '){
-			//printf("\tFound the space at %i\n",i);
 			break;
 		}
 
 	}
 
 
+	/* Dynamic allocation for token  */
 	int size 	= i - tk->parsingIndex;
 	tk->token 	= (char*)realloc(tk->token,(size+1));
 	memcpy(tk->token, &input[tk->parsingIndex],size);
 	tk->token[size] = '\0';
 
 
+	/* Run token through fsm to get type */
+	//tk->type = (char*)realloc(tk->type,10);
+	tk->type = getType(tk->token);
+
+
 	tk->parsingIndex = i+1;
-
-
-
 
 
   	return tk->token;
@@ -155,9 +155,10 @@ char *TKGetNextToken( TokenizerT * tk ) {
 /* This function will print the information of a token in standard output. */
 void printToken(TokenizerT* ts){
 
-	printf("\n---PRINTING\n The full input: '%s'\n", ts->inputCopy);
-	printf(" The token is: '%s' of length %lu\n",ts->token, strlen(ts->token));
-	printf(" The parsing index is ( %i )\n\n", ts->parsingIndex);
+	printf("\n\n---PRINTING\n The full input: '%s'\n", ts->inputCopy);
+	printf(" The token is: '%s' of length %lu and of type: '%s' %lu\n",ts->token, strlen(ts->token), ts->type, strlen(ts->type));
+	printf(" The parsing index is ( %i )\n", ts->parsingIndex);
+	printf("---------------------------------\n\n");
 	
 
 }
@@ -203,26 +204,40 @@ int main(int argc, char **argv) {
 	/* Argument validity check.  Include -help option */
 	argCheck(argc, argv);
 	TokenizerT* tokenizer = TKCreate(argv[1]);
-	printToken(tokenizer);
 
 
+	char* test = "";
 
-	char* test = TKGetNextToken(tokenizer);
-	printToken(tokenizer);
+	/*
+	while(TKGetNextToken(tokenizer) != 0){
 
-
-	while(test != 0){
+		printToken(tokenizer);
+	}
+	*/
+	
+	do{
 		test = TKGetNextToken(tokenizer);
 		printToken(tokenizer);
 
+	}while(test != 0);
+	
 
-	}
+
 
 
 	/*  PROGRESS NOTES TO SELF:
 			-> Substrings separated by spaces completed.
-			-> Write basic type checker.  Use finite state machine design. 
+			-> Write basic type checker.  Use finite state machine design.
+			-> No isspace function on linux cluster
+
 	*/
+
+
+
+
+	//char* temp = getType(tokenizer->token);
+
+	//printf("\n\n%s\n\n",getType("penis"));
 
 
 
