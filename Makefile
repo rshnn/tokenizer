@@ -7,7 +7,7 @@ CCFLAGS += -g
 endif
 
 make: tokenizer.c
-	$(COMPILER) $(CCFLAGS) -o tokenizer tokenizer.c fsm.c
+	$(COMPILER) $(CCFLAGS) -o tokenizer tokenizer.c
 	
 clean: 
 	rm -f tokenizer
