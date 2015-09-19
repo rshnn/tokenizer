@@ -47,16 +47,13 @@ char nextChar(TokenizerT* tk){
 	/* Exit fsm case:  Found delimeter or reached eof. */
 	if(isspace(tk->inputCopy[tk->parsingIndex+1]) || tk->parsingIndex == strlen(tk->inputCopy)-1){
 
-		printf("~Found a space or end of file.\n");
 		tk->parsingIndex++;
 		tk->currChar = tk->inputCopy[tk->parsingIndex];
-
-		printf("curChar: %c, Runningsize: %i\n",tk->currChar, tk->runningSize);
-
-
+		printf("END: curChar: '%c', Runningsize: %i, ParsingIndex: %i\n",tk->currChar, tk->runningSize, tk->parsingIndex);
 		return 1;
 
 	}
+	/* Go to next character in input string. */
 	else{
 
 		tk->parsingIndex++;
@@ -64,7 +61,6 @@ char nextChar(TokenizerT* tk){
 		tk->runningSize++;
 
 		printf("curChar: %c, Runningsize: %i\tParsingIndex: %i\n",tk->currChar, tk->runningSize, tk->parsingIndex);
-
 
 		return tk->inputCopy[tk->parsingIndex];
 	}
@@ -116,6 +112,7 @@ char state2(TokenizerT* tk){
 
 
 char state0(TokenizerT* tk){
+
 	tk->currChar = nextChar(tk);
 
 
@@ -150,24 +147,21 @@ int runFSM(TokenizerT* tk){
 	}
 
 
-	//tk->currChar = tk->inputCopy[tk->parsingIndex];
 
+	char 	type 	= 0;
+	char*	output	= 0; 
 
+	type 	= state0(tk);
 
-
-
-	char 	type 	= ' ';
-	char*	output	= " "; 
-
-	type = state0(tk);
 
 	switch (type){
-		case 'm': output = "malformed"; break;
-		case 'n': output = "number"; break;
-		case 'w': output = "word"; break;
-		default: output = "idunno"; break;
+		case 'm': output 	= "malformed"; break;
+		case 'n': output 	= "number"; break;
+		case 'w': output 	= "word"; break;
+		default: output 	= "idunno"; break;
 
 	}
+
 
 	tk->type = output;
 
@@ -245,10 +239,10 @@ int runFSM(TokenizerT* tk){
 */
 void printToken(TokenizerT* ts){
 
-	printf("\n\n-------------PRINTING\n The full input: '%s'\n", ts->inputCopy);
-	printf(" The token is: '%s' of length %lu and of type: '%s' %lu\n",ts->token, strlen(ts->token), ts->type, strlen(ts->type));
-	printf(" The parsing index is ( %i )\n", ts->parsingIndex);
-	printf("---------------------------------\n\n");
+	printf("\n\n\t-------------PRINTING\n\t The full input: '%s'\n", ts->inputCopy);
+	printf("\t The token is: '%s' of length %lu and of type: '%s' %lu\n",ts->token, strlen(ts->token), ts->type, strlen(ts->type));
+	printf("\t The parsing index is ( %i )\n", ts->parsingIndex);
+	printf("\t---------------------------------\n\n");
 	
 
 }
@@ -332,27 +326,29 @@ char *TKGetNextToken( TokenizerT * tk ) {
 
 
 	while(runFSM(tk) == 0){
+		int size 		= 0;
+		int startAddr	= 0;
+
+		
 
 		if(tk->runningSize != 0){			
-			/* Dynamic allocation for token  */
-			int size 	= tk->runningSize;
+			
+			/* Dynamic allocation for token */
+			size 		= tk->runningSize;
 			tk->token 	= (char*)realloc(tk->token,(size+1));
-			memcpy(tk->token, &tk->inputCopy[tk->parsingIndex-size],size);
+			startAddr	= tk->parsingIndex-size;
+
+			if(strcmp(tk->type,"malformed") == 0)
+				startAddr++;
+				
+			memcpy(tk->token, &tk->inputCopy[startAddr],size);
 			tk->token[size] = '\0';
 
 			printToken(tk);
-
 			tk->runningSize = 0;
 		}
 
 	}
-
-	// /* Run token through fsm to get type */
-	// //tk->type = (char*)realloc(tk->type,10);
-	// tk->type = getType(tk->token);
-
-
-	// tk->parsingIndex = i+1;
 
 
   	return tk->token;
