@@ -17,6 +17,7 @@ struct TokenizerT_ {
 	int parsingIndex;
 	char currChar;
 	int runningSize;
+	int opFound;
 };
 typedef struct TokenizerT_ TokenizerT;
 
@@ -34,11 +35,60 @@ typedef struct TokenizerT_ TokenizerT;
 
 
 
+/* 
+	Skipped items:  .  +  - for states 3, 9, and 12.
+*/
+int isOpCharTrunc(char c){
 
+	switch(c){
+		case '(': return 1;
+		case ')': return 1;
+		case '[': return 1;
+		case ']': return 1;
+		case '>': return 1;
+		case '*': return 1;
+		case '&': return 1;
+		case '!': return 1;
+		case '~': return 1;
+		case '/': return 1;
+		case '%': return 1;
+		case '<': return 1;
+		case '=': return 1;
+		case '^': return 1;
+		case '|': return 1;
+		case ',': return 1;
 
+		default: return 0;
+	}
 
+}
 
+int isOpChar(char c){
+	switch(c){
+		case '(': return 1;
+		case ')': return 1;
+		case '[': return 1;
+		case ']': return 1;
+		case '>': return 1;
+		case '*': return 1;
+		case '&': return 1;
+		case '!': return 1;
+		case '~': return 1;
+		case '/': return 1;
+		case '%': return 1;
+		case '<': return 1;
+		case '=': return 1;
+		case '^': return 1;
+		case '|': return 1;
+		case ',': return 1;
+		
+		case '.': return 1;
+		case '+': return 1;
+		case '-': return 1;
 
+		default: return 0;	
+	}
+}
 
 
 
@@ -53,6 +103,7 @@ char nextChar(TokenizerT* tk){
 		return 1;
 
 	}
+
 	/* Go to next character in input string. */
 	else{
 
@@ -67,68 +118,307 @@ char nextChar(TokenizerT* tk){
 
 }
 
+/* 
+	Helper function for fsm to identify a digit in the range 0-7. 
+	Returns 0 if false.
+*/
+int isOctal(char x){
+	if(isdigit(x)){
+		if(x == '8' || x == '9')
+			return 0;
+		else
+			return 1;
+	}
+	return 0;
+}
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+/* C Operator stuff */
+char state15(TokenizerT* tk){
+	tk->opFound		= 1;
+	tk->currChar 	= nextChar(tk);
+
+
+	if(isOpChar(tk->currChar))
+		return state15(tk);
+	if(tk->currChar == 1)
+		return 'c';
+
+	else
+		return 'c';
+
+}
+
+
+
+
+
+char state14(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+
+	if(isdigit(tk->currChar))
+		return state14(tk);
+	if(tk->currChar == 1)
+		return 'f';
+	else
+		return 'm';
+}
+
+
+
+char state13(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+
+	if(isdigit(tk->currChar))
+		return state14(tk);
+	else
+		return 'm';
+
+}
+
+
+
+char state12(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+
+
+	if(tk->currChar == '+' || tk->currChar == '-')
+		return state13(tk);
+	if(isdigit(tk->currChar))
+		return state12(tk);
+	else
+		return 'm';
+
+}
+
+
+
+
+
+char state11(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+
+	if(isdigit(tk->currChar))
+		return state11(tk);
+	if(tk->currChar == 1)
+		return 'f';
+	if(tk->currChar == 'E' || tk->currChar == 'e')
+		return state12(tk);
+	else
+		return 'm';
+
+}
+
+
+
+
+
+char state10(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+
+	if(isdigit(tk->currChar))
+		return state11(tk);
+	else
+		return 'm';
+
+}
+
+
+
+
+char state9(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+
+	if(isdigit(tk->currChar))
+		return state9(tk);
+	if(tk->currChar == '.')
+		return state10(tk);
+	if(tk->currChar == 1)
+		return 'i';
+	if(tk->currChar == 'E' || tk->currChar == 'e')
+		return state12(tk);
+	else
+		return 'm';
+}
+
+
+
+
+
+char state8(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+
+	if(isdigit(tk->currChar))
+		return state8(tk);
+	if(tk->currChar == 1)
+		return 'f';
+	if(tk->currChar == 'E' || tk->currChar == 'e')
+		return state12(tk);
+	else
+		return 'm';
+}
+
+
+
+char state7(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+
+	if(isdigit(tk->currChar))
+		return state8(tk);
+	else
+		return 'm';
+}
+
+
+
+char state6(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+
+	if(isxdigit(tk->currChar))
+		return state6(tk);
+	if(tk->currChar == 1)
+		return 'h';
+	else
+		return 'm';
+}
+
+
+
+char state5(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+	//printf("\tIn state 5\n");
+
+
+	if(isxdigit(tk->currChar))
+		return state6(tk);
+	else
+		return 'm';
+}
+
+
+
+
+
+
+char state4(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+	//printf("\tIn state 4\n");
+
+
+
+	if(isOctal(tk->currChar))
+		return state4(tk);
+	if(tk->currChar == 1)
+		return 'o';
+	else
+		return 'm';
+}
+
+
+
+
+
+
+
+
+
+char state3(TokenizerT* tk){
+	tk->currChar = nextChar(tk);
+	//printf("\tIn state 3\n");
+
+
+
+	if(isOctal(tk->currChar)){
+		return state4(tk);
+	}
+	if(tk->currChar == 'x' || tk->currChar == 'X'){
+		return state5(tk);
+	}
+	if(tk->currChar == '.'){
+		return state7(tk);
+	}
+	if(tk->currChar == 1){
+		return 'z';
+	}else{
+		return 'm';
+	}
+
+}
+
+
+
+char state2(TokenizerT* tk){
+	//tk->currChar = nextChar(tk);
+	//printf("\tIn state 2\n");
+
+
+	if(tk->currChar == 1)
+		return 'i';
+	if(isdigit(tk->currChar)){
+		if(tk->currChar == '0'){
+			return state3(tk);
+		}else
+			return state9(tk);
+	}
+	else
+		return 'm';
+
+}
 
 
 
 char state1(TokenizerT* tk){
 	tk->currChar = nextChar(tk);
-
+	//printf("\tIn state 1\n");
 
 
 	if(tk->currChar == 1)
 		return 'w';
-	
-
-	if(isalpha(tk->currChar))
+	if(isalnum(tk->currChar))
 		return state1(tk);
-	
-
+	if(isOpChar(tk->currChar)){
+		tk->opFound = 1;
+		return 'w';
+	}
 	else
 		return 'm';
-	
-
 }
 
 
 
-
-char state2(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
-
-
-	if(tk->currChar == 1){
-		return 'n';
-	}
-	if(isdigit(tk->currChar)){
-		return state2(tk);
-	}else
-		return 'm';
-
-}
 
 
 char state0(TokenizerT* tk){
-
 	tk->currChar = nextChar(tk);
 
-
-	if(isalpha(tk->currChar)){
+	if(isOpChar(tk->currChar)){
+		return state15(tk);
+	}
+	if(isalpha(tk->currChar))
 		return state1(tk);
-	}
-
-	if(isdigit(tk->currChar)){
+	if(isdigit(tk->currChar))
 		return state2(tk);
-	}
-	else{
+
+	else
 		return 'm';
-	}
-
-
 }
+
+
+
 
 
 
@@ -139,6 +429,8 @@ char state0(TokenizerT* tk){
 */
 
 int runFSM(TokenizerT* tk){
+
+	printf("\n\nStarting FSM\nParsingIndex: %i\n", tk->parsingIndex);
 
 	/* If eof reached */
 	if(tk->parsingIndex == strlen(tk->inputCopy)){
@@ -156,8 +448,13 @@ int runFSM(TokenizerT* tk){
 
 	switch (type){
 		case 'm': output 	= "malformed"; break;
-		case 'n': output 	= "number"; break;
+		case 'i': output 	= "integer"; break;
 		case 'w': output 	= "word"; break;
+		case 'h': output	= "hex constant"; break;
+		case 'o': output 	= "octal constant"; break;
+		case 'z': output	= "zero"; break;
+		case 'f': output 	= "float"; break;
+		case 'c': output	= "C op"; break;
 		default: output 	= "idunno"; break;
 
 	}
@@ -165,7 +462,7 @@ int runFSM(TokenizerT* tk){
 
 	tk->type = output;
 
-	printf("\n%s - ParsingIndex: %i - RunningSize: %i\n",output,tk->parsingIndex, tk->runningSize);
+	printf("\nDONE WITH TOK: %s - ParsingIndex: %i - RunningSize: %i\n",output,tk->parsingIndex, tk->runningSize);
 	return 0;
 }
 
@@ -234,10 +531,9 @@ int runFSM(TokenizerT* tk){
 
 
 /* 
-	This function will print the information of a token in standard output.
-	FOR TESTING.
+	This function will print the information of a token in standard output for debugging purposes.
 */
-void printToken(TokenizerT* ts){
+void printToken1(TokenizerT* ts){
 
 	printf("\n\n\t-------------PRINTING\n\t The full input: '%s'\n", ts->inputCopy);
 	printf("\t The token is: '%s' of length %lu and of type: '%s' %lu\n",ts->token, strlen(ts->token), ts->type, strlen(ts->type));
@@ -247,7 +543,15 @@ void printToken(TokenizerT* ts){
 
 }
 
+/*
+	This function will print the type of the token and the token in stdout.
+*/
+void printToken(TokenizerT* tk){
 
+	if(tk->token != 0 && tk->type != 0)
+		printf("\t\t\t\t\t\t\t\t%s \"%s\"\n",tk->type, tk->token);
+
+}
 
 
 
@@ -292,6 +596,7 @@ TokenizerT *TKCreate( char * ts ) {
 	tokenizer->parsingIndex = -1;
 	tokenizer->currChar		= 0;
 	tokenizer->runningSize	= 0;
+	tokenizer->opFound		= 0;
 	printf("The tokenizer was initialized.\n");
 
 
@@ -324,8 +629,7 @@ void TKDestroy( TokenizerT * tk ) {
 
 char *TKGetNextToken( TokenizerT * tk ) {
 
-
-	while(runFSM(tk) == 0){
+	if(runFSM(tk) == 0){
 		int size 		= 0;
 		int startAddr	= 0;
 
@@ -338,20 +642,26 @@ char *TKGetNextToken( TokenizerT * tk ) {
 			tk->token 	= (char*)realloc(tk->token,(size+1));
 			startAddr	= tk->parsingIndex-size;
 
+			printf("\nOP found status: %i\n",tk->opFound);
+
 			if(strcmp(tk->type,"malformed") == 0)
 				startAddr++;
+
 				
 			memcpy(tk->token, &tk->inputCopy[startAddr],size);
 			tk->token[size] = '\0';
 
-			printToken(tk);
+			tk->opFound		= 0;
 			tk->runningSize = 0;
+		}else{
+			tk->token = 0;
+			tk->type = 0;
+			tk->opFound = 0;
 		}
 
+		return tk->token;
 	}
-
-
-  	return tk->token;
+  	return 0;
 }
 
 
@@ -366,10 +676,8 @@ void argCheck(int argc, char** argv){
 
 	char* argNumErr = "Incorrect number of arguments given.  Use \"tokenizer -help\" for proper usage infomation.\n";  
 	switch(argc){
-
 		case 2:
-			if ( strcmp(argv[1], "-help")== 0 )
-			{
+			if ( strcmp(argv[1], "-help")== 0 ){
 				fprintf(stderr, "\nProper usage:  ./tokenizer \"argument to tokenize may include 0x3284\"\n\n");
 				exit(0);
 			}
@@ -379,10 +687,7 @@ void argCheck(int argc, char** argv){
 			fprintf(stderr, "%s\n", argNumErr);
 			exit(0);
 	}
-
-
 	printf("Passed initial arguments test. \n");
-
 }
 
 
@@ -404,9 +709,13 @@ int main(int argc, char **argv) {
 
 
 
+	while(TKGetNextToken(tokenizer) != 0){
 
+		printToken1(tokenizer);
+		printToken(tokenizer);
 
-	char* test = TKGetNextToken(tokenizer);
+	}
+
 
 
 
@@ -417,9 +726,6 @@ int main(int argc, char **argv) {
 
 
 	/*  PROGRESS NOTES TO SELF:;
-			-> Substrings separated by spaces completed.
-			-> Write basic type checker.  Use finite state machine design.
-			-> No isspace function on linux cluster
 
 	*/
 
