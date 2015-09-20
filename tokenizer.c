@@ -74,6 +74,7 @@ int isOpChar(char c){
 		case '+': return 1;
 		case '-': return 1;
 		case ';': return 1;
+		case '\'': return 1;
 
 		default: return 0;	
 	}
@@ -116,7 +117,7 @@ int isEscape(char c, TokenizerT* tk){
 		case '\x40':	tk->escapedTok = "[0x40]";return 1;
 
 
-		case '\'':		tk->escapedTok = "[0x2c]";return 1 ;
+		//case '\'':		tk->escapedTok = "[0x2c]";return 1 ;
 		case '\"':		tk->escapedTok = "[0x22]";return 1;
 
 		default: 	return 0;
@@ -129,14 +130,14 @@ char nextChar(TokenizerT* tk){
 
 	/* Reached EOF */
 	if(tk->parsingIndex+1 > strlen(tk->inputCopy)-1){
-		printf("Reached eof in nextChar\n");
+		//printf("Reached eof in nextChar\n");
 		tk->parsingIndex++;
 		return 1;
 	}
 
 
 	if(isEscape(tk->inputCopy[tk->parsingIndex+1], tk)){
-		printf("Found escape char.\n");
+		//printf("Found escape char.\n");
 		tk->parsingIndex++;
 		return 1;
 
@@ -144,7 +145,7 @@ char nextChar(TokenizerT* tk){
 
 	/* Next token is space */
 	if( isspace(tk->inputCopy[tk->parsingIndex+1]) ){
-		printf("Found space\n");
+		//printf("Found space\n");
 		tk->parsingIndex++;
 		return 1;
 	}
@@ -153,7 +154,7 @@ char nextChar(TokenizerT* tk){
 
 	if(isOpChar(tk->inputCopy[tk->parsingIndex+1]) ){
 
-		printf("Found C operator char\n");
+		//printf("Found C operator char\n");
 
 		if(!tk->CopMode){
 			tk->CopMode = 1;
@@ -167,7 +168,7 @@ char nextChar(TokenizerT* tk){
 
 
 	tk->parsingIndex++;
-	printf("\tCurrChar: %c, ParsingIndex: %i, StartIndex: %i\n",tk->inputCopy[tk->parsingIndex], tk->parsingIndex, tk->startIndex);
+	//printf("\tCurrChar: %c, ParsingIndex: %i, StartIndex: %i\n",tk->inputCopy[tk->parsingIndex], tk->parsingIndex, tk->startIndex);
 	return tk->inputCopy[tk->parsingIndex];
 
 
@@ -220,7 +221,7 @@ char* state28(TokenizerT* tk){
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
 		tk->CopMode = 0;
-		return "assignment operator";
+		return "division assignment";
 	}else{
 		tk->CopMode = 0;
 		return "divides";
@@ -237,7 +238,7 @@ char* state27(TokenizerT* tk){
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
 		tk->CopMode = 0;
-		return "assignment operator";
+		return "bitwise xor assignment";
 	}else{
 		tk->CopMode = 0;
 		return "bitwise exclusive or";
@@ -252,7 +253,7 @@ char* state26(TokenizerT* tk){
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
 		tk->CopMode = 0;
-		return "assignment operator";
+		return "modulo assignment";
 	}else{
 		tk->CopMode = 0;
 		return "modulus";
@@ -267,7 +268,7 @@ char* state25(TokenizerT* tk){
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
 		tk->CopMode = 0;
-		return "assignment operator";
+		return "multiplication assignment";
 	}else{
 		tk->CopMode = 0;
 		return "indirect";
@@ -286,7 +287,7 @@ char* state24(TokenizerT* tk){
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
 		tk->CopMode = 0;
-		return "assignment operator";
+		return "bitwise or assignment";
 	}else{
 		tk->CopMode = 0;
 		return "vertical bar";
@@ -306,7 +307,7 @@ char* state23(TokenizerT* tk){
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
 		tk->CopMode = 0;
-		return "assignment operator";
+		return "bitwise and assignment";
 	}else{
 		tk->CopMode = 0;
 		return "ampersand";
@@ -337,7 +338,7 @@ char* state21(TokenizerT* tk){
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
 		tk->CopMode = 0;
-		return "assignment operator";
+		return "bitwise left shift assignment";
 	}else{
 		tk->CopMode = 0;
 		return "shift left";
@@ -373,7 +374,7 @@ char* state19(TokenizerT* tk){
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
 		tk->CopMode = 0;
-		return "assignment operator";
+		return "bitwise right shift assignment";
 	}else{
 		tk->CopMode = 0;
 		return "shift right";
@@ -408,7 +409,6 @@ char* state18(TokenizerT* tk){
 
 char* state17(TokenizerT* tk){
 
-	printf("In state17\n");
 
 	if(tk->currChar == '+'){
 		tk->currChar = nextChar(tk);
@@ -418,7 +418,7 @@ char* state17(TokenizerT* tk){
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
 		tk->CopMode = 0;
-		return "assignment operator";
+		return "addition assignment";
 	}
 
 	else{
@@ -432,8 +432,6 @@ char* state17(TokenizerT* tk){
 
 
 char* state16(TokenizerT* tk){
-
-	printf("In state16\n");
 
 	if(tk->currChar == '>'){
 		tk->currChar = nextChar(tk);	
@@ -450,7 +448,7 @@ char* state16(TokenizerT* tk){
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
 		tk->CopMode = 0;
-		return "assignment operator";
+		return "subtraction operation";
 	}
 
 	else{
@@ -465,9 +463,7 @@ char* state16(TokenizerT* tk){
 										/* C Operator stuff */
 										char* state15(TokenizerT* tk){
 
-											printf("In state 15\n");
 											tk->CopMode 	= 	1;
-											//tk->currChar 	= nextChar(tk);
 
 											if(tk->currChar == '\\'){
 												tk->currChar = nextChar(tk);
@@ -581,13 +577,13 @@ char* state16(TokenizerT* tk){
 											if(tk->currChar == '['){
 												tk->currChar = nextChar(tk);
 												tk->CopMode = 0;
-												return "right brace";
+												return "left brace";
 											}
 
 											if(tk->currChar == ']'){
 												tk->currChar = nextChar(tk);
 												tk->CopMode = 0;
-												return "left brace";
+												return "right brace";
 											}
 
 											if(tk->currChar == '#'){
@@ -599,19 +595,25 @@ char* state16(TokenizerT* tk){
 											if(tk->currChar == '{'){
 												tk->currChar = nextChar(tk);
 												tk->CopMode = 0;
-												return "right curly brace";
+												return "left curly brace";
 											}
 
 											if(tk->currChar == '}'){
 												tk->currChar = nextChar(tk);
 												tk->CopMode = 0;
-												return "left curly brace";
+												return "right curly brace";
 											}
 								
 											if(tk->currChar == ';'){
 												tk->currChar = nextChar(tk);
 												tk->CopMode = 0;
 												return "semicolon";
+											}
+
+											if(tk->currChar == '\''){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "apostrophe";
 											}
 
 											return "C token";
@@ -770,7 +772,6 @@ char* state8(TokenizerT* tk){
 
 
 char* state7(TokenizerT* tk){
-	printf("In state 7\n");
 
 	if(isdigit(tk->currChar)){
 		tk->currChar = nextChar(tk);
@@ -783,8 +784,6 @@ char* state7(TokenizerT* tk){
 
 
 char* state6(TokenizerT* tk){
-
-	//tk->currChar = nextChar(tk);
 
 	if(isxdigit(tk->currChar)){
 		tk->currChar = nextChar(tk);
@@ -799,9 +798,6 @@ char* state6(TokenizerT* tk){
 
 
 char* state5(TokenizerT* tk){
-	//tk->currChar = nextChar(tk);
-	//printf("\tIn state 5\n");
-
 
 	if(isxdigit(tk->currChar)){
 		tk->currChar = nextChar(tk);
@@ -817,9 +813,6 @@ char* state5(TokenizerT* tk){
 
 
 char* state4(TokenizerT* tk){
-	//tk->currChar = nextChar(tk);
-	//printf("\tIn state 4\n");
-
 
 
 	if(isOctal(tk->currChar)){
@@ -841,7 +834,6 @@ char* state4(TokenizerT* tk){
 
 
 char* state3(TokenizerT* tk){
-	printf("In state 3\n");
 
 
 	if(isOctal(tk->currChar)){
@@ -867,7 +859,6 @@ char* state3(TokenizerT* tk){
 
 
 char* state2(TokenizerT* tk){
-	printf("In state 2\n");
 
 
 	if(tk->currChar == 1)
@@ -923,7 +914,6 @@ char* state1(TokenizerT* tk){
 char* state0(TokenizerT* tk){
 
 	tk->currChar = tk->inputCopy[tk->parsingIndex];
-	printf("State0 char: '%c'\n",tk->currChar);
 
 	if(isspace(tk->currChar)){
 		tk->currChar = nextChar(tk);
@@ -939,7 +929,6 @@ char* state0(TokenizerT* tk){
 
 
 	if(isEscape(tk->currChar, tk)){
-		printf("~~Found escape.\n");
 		tk->parsingIndex++;
 		return "escape character";
 	}
@@ -975,11 +964,9 @@ char* state0(TokenizerT* tk){
 
 int runFSM(TokenizerT* tk){
 
-	printf("\n\nStarting FSM\nParsingIndex: %i, Starti: %i\n", tk->parsingIndex, tk->startIndex);
 
 	/* If eof reached */
 	if(tk->parsingIndex >= strlen(tk->inputCopy)){
-		printf("At EOF\n");
 		return 1;
 	}
 
@@ -994,8 +981,6 @@ int runFSM(TokenizerT* tk){
 		tk->parsingIndex++;
 	}
 
-
-	printf("\nDONE WITH TOK: %s - ParsingIndex: %i - Start: %i\n",type,tk->parsingIndex, tk->startIndex);
 	return 0;
 }
 
@@ -1082,7 +1067,7 @@ void printToken1(TokenizerT* ts){
 void printToken(TokenizerT* tk){
 
 	if(tk->token != 0 && tk->type != 0)
-		printf("\t\t\t\t\t\t\t\t%s \"%s\"\n",tk->type, tk->token);
+		printf("%s \"%s\"\n",tk->type, tk->token);
 
 }
 
@@ -1132,8 +1117,6 @@ TokenizerT *TKCreate( char * ts ) {
 	tokenizer->CopMode		= 0;
 	tokenizer->escapedTok	= 0;
 
-	printf("The tokenizer was initialized.\n");
-
 	return tokenizer;
 }
 
@@ -1169,17 +1152,11 @@ char *TKGetNextToken( TokenizerT * tk ) {
 		int startAddr	= 0;
 
 
-		if(tk->parsingIndex != tk->startIndex){	
-
-			printf("Made it here\n");
-			
+		if(tk->parsingIndex != tk->startIndex){				
 
 			if(strcmp(tk->type, "escape character") == 0){
-				printf("ESCAPEPDEPDPEPDEPDED\n");
 				tk->token = (char*)realloc(tk->token,(7));
 				strcpy(tk->token, tk->escapedTok);
-				//tk->token = tk->escapedTok;
-				//tk->token[6] = '\0';
 				tk->escapedTok = 0;
 
 			}else{
@@ -1194,7 +1171,7 @@ char *TKGetNextToken( TokenizerT * tk ) {
 			tk->token[size] = '\0';}
 
 		}else{
-			printf("\tEmpty token\n");
+			/* Empty token (isspace). */
 			tk->token = 0;
 			tk->type = 0;
 		}
@@ -1227,7 +1204,6 @@ void argCheck(int argc, char** argv){
 			fprintf(stderr, "%s\n", argNumErr);
 			exit(0);
 	}
-	printf("Passed initial arguments test. \n");
 }
 
 
@@ -1251,7 +1227,7 @@ int main(int argc, char **argv) {
 
 	while(TKGetNextToken(tokenizer) != 0){
 
-		printToken1(tokenizer);
+		//printToken1(tokenizer);
 		printToken(tokenizer);
 
 	}
