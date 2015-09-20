@@ -302,9 +302,10 @@ char* state12(TokenizerT* tk){
 		return state14(tk);
 	}
 
+	else{
 
-	else
 		return "malformed";
+	}
 
 }
 
@@ -398,7 +399,7 @@ char* state8(TokenizerT* tk){
 			tk->currChar = tk->inputCopy[tk->parsingIndex];
 		}else
 			tk->currChar = nextChar(tk);
-			
+
 		return state12(tk);
 	}
 	else
@@ -611,7 +612,7 @@ int runFSM(TokenizerT* tk){
 	printf("\n\nStarting FSM\nParsingIndex: %i, Starti: %i\n", tk->parsingIndex, tk->startIndex);
 
 	/* If eof reached */
-	if(tk->parsingIndex == strlen(tk->inputCopy)){
+	if(tk->parsingIndex >= strlen(tk->inputCopy)){
 		printf("At EOF\n");
 		return 1;
 	}
