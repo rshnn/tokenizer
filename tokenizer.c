@@ -14,10 +14,11 @@ struct TokenizerT_ {
 	char* token;
 	char* inputCopy;
 
+
 	int parsingIndex;
+	int startIndex;
 	char currChar;
-	int runningSize;
-	int opFound;
+	int CopMode;
 };
 typedef struct TokenizerT_ TokenizerT;
 
@@ -31,8 +32,19 @@ typedef struct TokenizerT_ TokenizerT;
 
 
 
-
-
+/* 
+	Helper function for fsm to identify a digit in the range 0-7. 
+	Returns 0 if false.
+*/
+int isOctal(char x){
+	if(isdigit(x)){
+		if(x == '8' || x == '9')
+			return 0;
+		else
+			return 1;
+	}
+	return 0;
+}
 
 
 /* 
@@ -94,42 +106,43 @@ int isOpChar(char c){
 
 char nextChar(TokenizerT* tk){
 
-	/* Exit fsm case:  Found delimeter or reached eof. */
-	if(isspace(tk->inputCopy[tk->parsingIndex+1]) || tk->parsingIndex == strlen(tk->inputCopy)-1){
-
+	/* Reached EOF */
+	if(tk->parsingIndex+1 > strlen(tk->inputCopy)-1){
+		printf("Reached eof in nextChar\n");
 		tk->parsingIndex++;
-		tk->currChar = tk->inputCopy[tk->parsingIndex];
-		printf("END: curChar: '%c', Runningsize: %i, ParsingIndex: %i\n",tk->currChar, tk->runningSize, tk->parsingIndex);
 		return 1;
-
 	}
 
-	/* Go to next character in input string. */
-	else{
-
+	/* Next token is space */
+	if( isspace(tk->inputCopy[tk->parsingIndex+1]) ){
+		printf("Found space\n");
 		tk->parsingIndex++;
-		tk->currChar = tk->inputCopy[tk->parsingIndex];
-		tk->runningSize++;
-
-		printf("curChar: %c, Runningsize: %i\tParsingIndex: %i\n",tk->currChar, tk->runningSize, tk->parsingIndex);
-
-		return tk->inputCopy[tk->parsingIndex];
+		return 1;
 	}
 
-}
 
-/* 
-	Helper function for fsm to identify a digit in the range 0-7. 
-	Returns 0 if false.
-*/
-int isOctal(char x){
-	if(isdigit(x)){
-		if(x == '8' || x == '9')
-			return 0;
-		else
+
+
+	if(isOpChar(tk->inputCopy[tk->parsingIndex+1]) ){
+
+		printf("Found C operator char\n");
+
+		if(!tk->CopMode){
+			tk->CopMode = 1;
+			tk->parsingIndex++;
 			return 1;
+		
+		}
 	}
-	return 0;
+	
+
+
+
+	tk->parsingIndex++;
+	printf("\tCurrChar: %c, ParsingIndex: %i, StartIndex: %i\n",tk->inputCopy[tk->parsingIndex], tk->parsingIndex, tk->startIndex);
+	return tk->inputCopy[tk->parsingIndex];
+
+
 }
 
 
@@ -144,22 +157,106 @@ int isOctal(char x){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* - */
+char* state16(TokenizerT* tk){
+
+	printf("In state16\n");
+	//tk->currChar = nextChar(tk);
+
+	if(tk->currChar == '>'){
+		tk->currChar = nextChar(tk);		
+		return "structure pointer";
+	}
+
+	if(tk->currChar == '-'){
+		tk->currChar = nextChar(tk);
+		return "decrement";
+	}
+
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		return "assignment operator";
+	}
+
+	if(tk->currChar == 1)
+		return "minus sign";
+
+	else
+		return "malformed";
+
+}
 
 
 
 /* C Operator stuff */
-char state15(TokenizerT* tk){
-	tk->opFound		= 1;
-	tk->currChar 	= nextChar(tk);
+char* state15(TokenizerT* tk){
+
+	printf("In state 15\n");
+	tk->CopMode 	= 	1;
+	//tk->currChar 	= nextChar(tk);
 
 
-	if(isOpChar(tk->currChar))
-		return state15(tk);
-	if(tk->currChar == 1)
-		return 'c';
+	if(tk->currChar == '-'){
+		tk->currChar = nextChar(tk);
+		return state16(tk);
+	}
 
-	else
-		return 'c';
+
+	return "C token";
 
 }
 
@@ -167,41 +264,47 @@ char state15(TokenizerT* tk){
 
 
 
-char state14(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state14(TokenizerT* tk){
 
-	if(isdigit(tk->currChar))
+	if(isdigit(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state14(tk);
+	}
 	if(tk->currChar == 1)
-		return 'f';
+		return "float";
 	else
-		return 'm';
+		return "malformed";
 }
 
 
 
-char state13(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state13(TokenizerT* tk){
 
-	if(isdigit(tk->currChar))
+	if(isdigit(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state14(tk);
+	}
 	else
-		return 'm';
+		return "malformed";
 
 }
 
 
 
-char state12(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state12(TokenizerT* tk){
 
-
-	if(tk->currChar == '+' || tk->currChar == '-')
+	if(tk->currChar == '+' || tk->currChar == '-'){
+		tk->currChar = nextChar(tk);
 		return state13(tk);
-	if(isdigit(tk->currChar))
-		return state12(tk);
+	}
+	if(isdigit(tk->currChar)){
+		tk->currChar = nextChar(tk);
+		return state14(tk);
+	}
+
+
 	else
-		return 'm';
+		return "malformed";
 
 }
 
@@ -209,17 +312,26 @@ char state12(TokenizerT* tk){
 
 
 
-char state11(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state11(TokenizerT* tk){
 
-	if(isdigit(tk->currChar))
+	if(isdigit(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state11(tk);
+	}
 	if(tk->currChar == 1)
-		return 'f';
-	if(tk->currChar == 'E' || tk->currChar == 'e')
+		return "float";
+	if(tk->currChar == 'E' || tk->currChar == 'e'){
+
+		if(tk->inputCopy[tk->parsingIndex+1] == '-' || tk->inputCopy[tk->parsingIndex+1] == '+'){
+			tk->parsingIndex++;
+			tk->currChar = tk->inputCopy[tk->parsingIndex];
+		}else
+			tk->currChar = nextChar(tk);
+
 		return state12(tk);
+	}
 	else
-		return 'm';
+		return "malformed";
 
 }
 
@@ -227,86 +339,114 @@ char state11(TokenizerT* tk){
 
 
 
-char state10(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state10(TokenizerT* tk){
 
-	if(isdigit(tk->currChar))
+	if(isdigit(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state11(tk);
+	}
 	else
-		return 'm';
+		return "malformed";
 
 }
 
 
 
 
-char state9(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state9(TokenizerT* tk){
 
-	if(isdigit(tk->currChar))
+	if(isdigit(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state9(tk);
-	if(tk->currChar == '.')
+	}
+	if(tk->currChar == '.'){
+		tk->currChar = nextChar(tk);
 		return state10(tk);
+	}
 	if(tk->currChar == 1)
-		return 'i';
-	if(tk->currChar == 'E' || tk->currChar == 'e')
+		return "integer";
+	if(tk->currChar == 'E' || tk->currChar == 'e'){
+
+		if(tk->inputCopy[tk->parsingIndex+1] == '-' || tk->inputCopy[tk->parsingIndex+1] == '+'){
+			tk->parsingIndex++;
+			tk->currChar = tk->inputCopy[tk->parsingIndex];
+		}else
+			tk->currChar = nextChar(tk);
+
 		return state12(tk);
+	}
 	else
-		return 'm';
+		return "malformed";
 }
 
 
 
 
 
-char state8(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state8(TokenizerT* tk){
 
-	if(isdigit(tk->currChar))
+	if(isdigit(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state8(tk);
+	}
 	if(tk->currChar == 1)
-		return 'f';
-	if(tk->currChar == 'E' || tk->currChar == 'e')
+		return "float";
+	if(tk->currChar == 'E' || tk->currChar == 'e'){
+
+		if(tk->inputCopy[tk->parsingIndex+1] == '-' || tk->inputCopy[tk->parsingIndex+1] == '+'){
+			tk->parsingIndex++;
+			tk->currChar = tk->inputCopy[tk->parsingIndex];
+		}else
+			tk->currChar = nextChar(tk);
+			
 		return state12(tk);
+	}
 	else
-		return 'm';
+		return "malformed";
 }
 
 
 
-char state7(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state7(TokenizerT* tk){
+	printf("In state 7\n");
 
-	if(isdigit(tk->currChar))
+	if(isdigit(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state8(tk);
+	}
 	else
-		return 'm';
+		return "malformed";
 }
 
 
 
-char state6(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state6(TokenizerT* tk){
 
-	if(isxdigit(tk->currChar))
+	//tk->currChar = nextChar(tk);
+
+	if(isxdigit(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state6(tk);
+	}
 	if(tk->currChar == 1)
-		return 'h';
+		return "hex constant";
 	else
-		return 'm';
+		return "malformed";
 }
 
 
 
-char state5(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state5(TokenizerT* tk){
+	//tk->currChar = nextChar(tk);
 	//printf("\tIn state 5\n");
 
 
-	if(isxdigit(tk->currChar))
+	if(isxdigit(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state6(tk);
+	}
 	else
-		return 'm';
+		return "malformed";
 }
 
 
@@ -314,18 +454,20 @@ char state5(TokenizerT* tk){
 
 
 
-char state4(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state4(TokenizerT* tk){
+	//tk->currChar = nextChar(tk);
 	//printf("\tIn state 4\n");
 
 
 
-	if(isOctal(tk->currChar))
+	if(isOctal(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state4(tk);
+	}
 	if(tk->currChar == 1)
-		return 'o';
+		return "octal constant";
 	else
-		return 'm';
+		return "malformed";
 }
 
 
@@ -336,85 +478,121 @@ char state4(TokenizerT* tk){
 
 
 
-char state3(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
-	//printf("\tIn state 3\n");
-
+char* state3(TokenizerT* tk){
+	printf("In state 3\n");
 
 
 	if(isOctal(tk->currChar)){
 		return state4(tk);
 	}
 	if(tk->currChar == 'x' || tk->currChar == 'X'){
+		tk->currChar = nextChar(tk);
 		return state5(tk);
 	}
 	if(tk->currChar == '.'){
+		tk->currChar = nextChar(tk);
 		return state7(tk);
 	}
 	if(tk->currChar == 1){
-		return 'z';
+		return "zero";
+
 	}else{
-		return 'm';
+		return "malformed";
 	}
 
 }
 
 
 
-char state2(TokenizerT* tk){
-	//tk->currChar = nextChar(tk);
-	//printf("\tIn state 2\n");
+char* state2(TokenizerT* tk){
+	printf("In state 2\n");
 
 
 	if(tk->currChar == 1)
-		return 'i';
+		return "integer";
+
 	if(isdigit(tk->currChar)){
+
 		if(tk->currChar == '0'){
+			if(tk->inputCopy[tk->parsingIndex+1] == '.'){
+				tk->parsingIndex++;
+				tk->currChar = tk->inputCopy[tk->parsingIndex];
+			}else
+				tk->currChar = nextChar(tk);
+
 			return state3(tk);
-		}else
+		}
+		else{
+			if(tk->inputCopy[tk->parsingIndex+1] == '.'){
+				tk->parsingIndex++;
+				tk->currChar = tk->inputCopy[tk->parsingIndex];
+			}else
+				tk->currChar = nextChar(tk);
+			
 			return state9(tk);
+		}
 	}
 	else
-		return 'm';
+		return "malformed";
 
 }
 
 
 
-char state1(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
-	//printf("\tIn state 1\n");
+char* state1(TokenizerT* tk){
 
+	if(tk->currChar == 1){
+		return "word";
+	}
 
-	if(tk->currChar == 1)
-		return 'w';
-	if(isalnum(tk->currChar))
+	if(isalnum(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state1(tk);
-	if(isOpChar(tk->currChar)){
-		tk->opFound = 1;
-		return 'w';
 	}
+
 	else
-		return 'm';
+		return "malformed";
 }
 
 
 
 
 
-char state0(TokenizerT* tk){
-	tk->currChar = nextChar(tk);
+char* state0(TokenizerT* tk){
+
+	tk->currChar = tk->inputCopy[tk->parsingIndex];
+	printf("State0 char: '%c'\n",tk->currChar);
+
+	if(isspace(tk->currChar)){
+		tk->currChar = nextChar(tk);
+		tk->startIndex++;
+		return state0(tk);
+	}
+
+
+	if(tk->parsingIndex == strlen(tk->inputCopy)){
+		tk->startIndex = tk->parsingIndex;
+		return "";
+	}
+
+
+
 
 	if(isOpChar(tk->currChar)){
 		return state15(tk);
 	}
-	if(isalpha(tk->currChar))
+
+
+	if(isalpha(tk->currChar)){
+		tk->currChar = nextChar(tk);
 		return state1(tk);
-	if(isdigit(tk->currChar))
+	}
+	if(isdigit(tk->currChar)){
 		return state2(tk);
+	}
 
 	else
-		return 'm';
+		return "malformed";
 }
 
 
@@ -430,39 +608,27 @@ char state0(TokenizerT* tk){
 
 int runFSM(TokenizerT* tk){
 
-	printf("\n\nStarting FSM\nParsingIndex: %i\n", tk->parsingIndex);
+	printf("\n\nStarting FSM\nParsingIndex: %i, Starti: %i\n", tk->parsingIndex, tk->startIndex);
 
 	/* If eof reached */
 	if(tk->parsingIndex == strlen(tk->inputCopy)){
-		printf("At eof\n");
+		printf("At EOF\n");
 		return 1;
 	}
 
 
+	char* 	type 	= 0;
+	tk->startIndex	= tk->parsingIndex;
 
-	char 	type 	= 0;
-	char*	output	= 0; 
+	type 			= state0(tk);
+	tk->type 		= type;
 
-	type 	= state0(tk);
-
-
-	switch (type){
-		case 'm': output 	= "malformed"; break;
-		case 'i': output 	= "integer"; break;
-		case 'w': output 	= "word"; break;
-		case 'h': output	= "hex constant"; break;
-		case 'o': output 	= "octal constant"; break;
-		case 'z': output	= "zero"; break;
-		case 'f': output 	= "float"; break;
-		case 'c': output	= "C op"; break;
-		default: output 	= "idunno"; break;
-
+	if(strcmp(type,"malformed")==0){
+		tk->parsingIndex++;
 	}
 
 
-	tk->type = output;
-
-	printf("\nDONE WITH TOK: %s - ParsingIndex: %i - RunningSize: %i\n",output,tk->parsingIndex, tk->runningSize);
+	printf("\nDONE WITH TOK: %s - ParsingIndex: %i - Start: %i\n",type,tk->parsingIndex, tk->startIndex);
 	return 0;
 }
 
@@ -593,12 +759,12 @@ TokenizerT *TKCreate( char * ts ) {
 	tokenizer->inputCopy 	= ts;
 	tokenizer->token 		= tokenBuffer;
 	tokenizer->type 		= 0;
-	tokenizer->parsingIndex = -1;
+	tokenizer->parsingIndex = 0;
+	tokenizer->startIndex	= 0;
 	tokenizer->currChar		= 0;
-	tokenizer->runningSize	= 0;
-	tokenizer->opFound		= 0;
-	printf("The tokenizer was initialized.\n");
+	tokenizer->CopMode		= 0;
 
+	printf("The tokenizer was initialized.\n");
 
 	return tokenizer;
 }
@@ -630,33 +796,25 @@ void TKDestroy( TokenizerT * tk ) {
 char *TKGetNextToken( TokenizerT * tk ) {
 
 	if(runFSM(tk) == 0){
+
 		int size 		= 0;
 		int startAddr	= 0;
 
-		
 
-		if(tk->runningSize != 0){			
+		if(tk->parsingIndex != tk->startIndex){	
 			
 			/* Dynamic allocation for token */
-			size 		= tk->runningSize;
+			size 		= tk->parsingIndex - tk->startIndex;
 			tk->token 	= (char*)realloc(tk->token,(size+1));
-			startAddr	= tk->parsingIndex-size;
+			startAddr	= tk->startIndex;
 
-			printf("\nOP found status: %i\n",tk->opFound);
-
-			if(strcmp(tk->type,"malformed") == 0)
-				startAddr++;
-
-				
 			memcpy(tk->token, &tk->inputCopy[startAddr],size);
 			tk->token[size] = '\0';
 
-			tk->opFound		= 0;
-			tk->runningSize = 0;
 		}else{
+			printf("\tEmpty token\n");
 			tk->token = 0;
 			tk->type = 0;
-			tk->opFound = 0;
 		}
 
 		return tk->token;
