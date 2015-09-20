@@ -192,73 +192,209 @@ char nextChar(TokenizerT* tk){
 
 
 
+char* state23(TokenizerT* tk){
+
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "not equals";
+	}else{
+		tk->CopMode = 0;
+		return "exclaimation point";
+	}
+}
 
 
 
 
 
 
+char* state22(TokenizerT* tk){
+
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "equals";
+	}else{
+		tk->CopMode = 0;
+		return "equal sign";
+	}
+}
+
+
+
+char* state21(TokenizerT* tk){
+
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "assignment operator";
+	}else{
+		tk->CopMode = 0;
+		return "shift left";
+	}
+}
+
+
+
+char* state20(TokenizerT* tk){
+
+	if(tk->currChar == '<'){
+		tk->currChar = nextChar(tk);
+		return state21(tk);
+	}
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "less or equal";
+	}
+
+	else{
+		tk->CopMode = 0;
+		return "less-than";
+	}
+}
+
+
+
+
+
+char* state19(TokenizerT* tk){
+
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "assignment operator";
+	}else{
+		tk->CopMode = 0;
+		return "shift right";
+	}
+}
+
+
+
+
+char* state18(TokenizerT* tk){
+
+	if(tk->currChar == '>'){
+		tk->currChar = nextChar(tk);
+		return state19(tk);
+	}
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "greater or equal";
+	}
+
+	else{
+		tk->CopMode = 0;
+		return "greater-than";
+	}
+}
 
 
 
 
 
 
+char* state17(TokenizerT* tk){
+
+	printf("In state17\n");
+
+	if(tk->currChar == '+'){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "increment";
+	}
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "assignment operator";
+	}
+
+	else{
+		tk->CopMode = 0;
+		return "plus sign";
+	}
+}
 
 
 
 
 
-
-
-/* - */
 char* state16(TokenizerT* tk){
 
 	printf("In state16\n");
 	//tk->currChar = nextChar(tk);
 
 	if(tk->currChar == '>'){
-		tk->currChar = nextChar(tk);		
+		tk->currChar = nextChar(tk);	
+		tk->CopMode = 0;	
 		return "structure pointer";
 	}
 
 	if(tk->currChar == '-'){
 		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
 		return "decrement";
 	}
 
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
 		return "assignment operator";
 	}
 
-	if(tk->currChar == 1)
+	else{
+		tk->CopMode = 0;
 		return "minus sign";
-
-	else
-		return "malformed";
-
-}
-
-
-
-/* C Operator stuff */
-char* state15(TokenizerT* tk){
-
-	printf("In state 15\n");
-	tk->CopMode 	= 	1;
-	//tk->currChar 	= nextChar(tk);
-
-
-	if(tk->currChar == '-'){
-		tk->currChar = nextChar(tk);
-		return state16(tk);
 	}
 
-
-	return "C token";
-
 }
+
+
+
+										/* C Operator stuff */
+										char* state15(TokenizerT* tk){
+
+											printf("In state 15\n");
+											tk->CopMode 	= 	1;
+											//tk->currChar 	= nextChar(tk);
+
+
+											if(tk->currChar == '-'){
+												tk->currChar = nextChar(tk);
+												return state16(tk);
+											}
+
+											if(tk->currChar == '+'){
+												tk->currChar = nextChar(tk);
+												return state17(tk);
+											}
+
+											if(tk->currChar == '>'){
+												tk->currChar = nextChar(tk);
+												return state18(tk);
+											}
+
+											if(tk->currChar == '<'){
+												tk->currChar = nextChar(tk);
+												return state20(tk);
+											}
+
+											if(tk->currChar == '='){
+												tk->currChar = nextChar(tk);
+												return state22(tk);
+											}
+
+											if(tk->currChar == '!'){
+												tk->currChar = nextChar(tk);
+												return state23(tk);
+											}
+
+											return "C token";
+
+										}
 
 
 
