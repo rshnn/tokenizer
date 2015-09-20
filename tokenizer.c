@@ -130,14 +130,14 @@ char nextChar(TokenizerT* tk){
 
 	/* Reached EOF */
 	if(tk->parsingIndex+1 > strlen(tk->inputCopy)-1){
-		//printf("Reached eof in nextChar\n");
+		printf("\t\tReached eof in nextChar\n");
 		tk->parsingIndex++;
 		return 1;
 	}
 
 
 	if(isEscape(tk->inputCopy[tk->parsingIndex+1], tk)){
-		//printf("Found escape char.\n");
+		printf("\t\tFound escape char.\n");
 		tk->parsingIndex++;
 		return 1;
 
@@ -145,7 +145,7 @@ char nextChar(TokenizerT* tk){
 
 	/* Next token is space */
 	if( isspace(tk->inputCopy[tk->parsingIndex+1]) ){
-		//printf("Found space\n");
+		printf("\t\tFound space\n");
 		tk->parsingIndex++;
 		return 1;
 	}
@@ -154,7 +154,7 @@ char nextChar(TokenizerT* tk){
 
 	if(isOpChar(tk->inputCopy[tk->parsingIndex+1]) ){
 
-		//printf("Found C operator char\n");
+		printf("\t\tFound C operator char\n");
 
 		if(!tk->CopMode){
 			tk->CopMode = 1;
@@ -168,7 +168,7 @@ char nextChar(TokenizerT* tk){
 
 
 	tk->parsingIndex++;
-	//printf("\tCurrChar: %c, ParsingIndex: %i, StartIndex: %i\n",tk->inputCopy[tk->parsingIndex], tk->parsingIndex, tk->startIndex);
+	printf("\tCurrChar: %c, ParsingIndex: %i, StartIndex: %i\n",tk->inputCopy[tk->parsingIndex], tk->parsingIndex, tk->startIndex);
 	return tk->inputCopy[tk->parsingIndex];
 
 
@@ -198,19 +198,19 @@ char* state30(TokenizerT* tk){
 
 
 
-
-
-/* Read an escape char.  On next char. */
+/* Read a backslash.  On next char. */
 char* state29(TokenizerT* tk){
 
-	tk->startIndex++;
 	if(tk->currChar == '!'){
+		tk->startIndex++;
 		tk->currChar = nextChar(tk);
 		return state30(tk);
 	}
-	else
-		return "escaped";
 
+	else{
+		tk->CopMode = 0;
+		return "backslash";
+	}
 
 }
 
@@ -468,8 +468,6 @@ char* state16(TokenizerT* tk){
 											if(tk->currChar == '\\'){
 												tk->currChar = nextChar(tk);
 												return state29(tk);
-
-
 											}
 
 
@@ -1247,6 +1245,8 @@ int main(int argc, char **argv) {
 
 
 	TKDestroy(tokenizer);
+
+	printf("Successful exit.\n");
   	return 0;
 }
 
