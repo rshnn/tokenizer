@@ -13,7 +13,7 @@ struct TokenizerT_ {
 	char* type;
 	char* token;
 	char* inputCopy;
-
+	char* escapedTok;
 
 	int parsingIndex;
 	int startIndex;
@@ -47,34 +47,6 @@ int isOctal(char x){
 }
 
 
-/* 
-	Skipped items:  .  +  - for states 3, 9, and 12.
-*/
-int isOpCharTrunc(char c){
-
-	switch(c){
-		case '(': return 1;
-		case ')': return 1;
-		case '[': return 1;
-		case ']': return 1;
-		case '>': return 1;
-		case '*': return 1;
-		case '&': return 1;
-		case '!': return 1;
-		case '~': return 1;
-		case '/': return 1;
-		case '%': return 1;
-		case '<': return 1;
-		case '=': return 1;
-		case '^': return 1;
-		case '|': return 1;
-		case ',': return 1;
-
-		default: return 0;
-	}
-
-}
-
 int isOpChar(char c){
 	switch(c){
 		case '(': return 1;
@@ -93,16 +65,65 @@ int isOpChar(char c){
 		case '^': return 1;
 		case '|': return 1;
 		case ',': return 1;
-		
+		case ':': return 1;
+		case '#': return 1;
+		case '{': return 1;
+		case '}': return 1;
+		case '\\': return 1;
 		case '.': return 1;
 		case '+': return 1;
 		case '-': return 1;
+		case ';': return 1;
 
 		default: return 0;	
 	}
 }
 
+int isEscape(char c, TokenizerT* tk){
 
+	switch(c){
+
+		case '\x00':	tk->escapedTok = "[0x00]";return 1;
+		case '\x01':	tk->escapedTok = "[0x01]";return 1;
+		case '\x02':	tk->escapedTok = "[0x02]";return 1;
+		case '\x03':	tk->escapedTok = "[0x03]";return 1;
+		case '\x04':	tk->escapedTok = "[0x04]";return 1;
+		case '\x05':	tk->escapedTok = "[0x05]";return 1;
+		case '\x06':	tk->escapedTok = "[0x06]";return 1;
+		case '\x07':	tk->escapedTok = "[0x07]";return 1;
+		case '\x08':	tk->escapedTok = "[0x08]";return 1;
+		case '\x0e':	tk->escapedTok = "[0x0e]";return 1;
+		case '\x0f':	tk->escapedTok = "[0x0f]";return 1;
+		case '\x10':	tk->escapedTok = "[0x10]";return 1;
+		case '\x11':	tk->escapedTok = "[0x11]";return 1;
+		case '\x12':	tk->escapedTok = "[0x12]";return 1;
+		case '\x13':	tk->escapedTok = "[0x13]";return 1;
+		case '\x14':	tk->escapedTok = "[0x14]";return 1;
+		case '\x15':	tk->escapedTok = "[0x15]";return 1;
+		case '\x16':	tk->escapedTok = "[0x16]";return 1;
+		case '\x17':	tk->escapedTok = "[0x17]";return 1;
+		case '\x18':	tk->escapedTok = "[0x18]";return 1;
+		case '\x19':	tk->escapedTok = "[0x19]";return 1;
+		case '\x1a':	tk->escapedTok = "[0x1a]";return 1;
+		case '\x1b':	tk->escapedTok = "[0x1b]";return 1;
+		case '\x1c':	tk->escapedTok = "[0x1c]";return 1;
+		case '\x1d':	tk->escapedTok = "[0x1d]";return 1;
+		case '\x1e':	tk->escapedTok = "[0x1e]";return 1;
+		case '\x1f':	tk->escapedTok = "[0x1f]";return 1;
+
+
+		case '\x24':	tk->escapedTok = "[0x24]";return 1;
+		case '\x40':	tk->escapedTok = "[0x40]";return 1;
+
+
+		case '\'':		tk->escapedTok = "[0x2c]";return 1 ;
+		case '\"':		tk->escapedTok = "[0x22]";return 1;
+
+		default: 	return 0;
+
+	}
+
+}
 
 char nextChar(TokenizerT* tk){
 
@@ -113,13 +134,20 @@ char nextChar(TokenizerT* tk){
 		return 1;
 	}
 
+
+	if(isEscape(tk->inputCopy[tk->parsingIndex+1], tk)){
+		printf("Found escape char.\n");
+		tk->parsingIndex++;
+		return 1;
+
+	}
+
 	/* Next token is space */
 	if( isspace(tk->inputCopy[tk->parsingIndex+1]) ){
 		printf("Found space\n");
 		tk->parsingIndex++;
 		return 1;
 	}
-
 
 
 
@@ -155,44 +183,7 @@ char nextChar(TokenizerT* tk){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-char* state23(TokenizerT* tk){
+char* state30(TokenizerT* tk){
 
 	if(tk->currChar == '='){
 		tk->currChar = nextChar(tk);
@@ -200,7 +191,125 @@ char* state23(TokenizerT* tk){
 		return "not equals";
 	}else{
 		tk->CopMode = 0;
-		return "exclaimation point";
+		return "negate";
+	}
+}
+
+
+
+
+
+/* Read an escape char.  On next char. */
+char* state29(TokenizerT* tk){
+
+	tk->startIndex++;
+	if(tk->currChar == '!'){
+		tk->currChar = nextChar(tk);
+		return state30(tk);
+	}
+	else
+		return "escaped";
+
+
+}
+
+
+
+char* state28(TokenizerT* tk){
+
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "assignment operator";
+	}else{
+		tk->CopMode = 0;
+		return "divides";
+	}
+}
+
+
+
+
+
+
+char* state27(TokenizerT* tk){
+
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "assignment operator";
+	}else{
+		tk->CopMode = 0;
+		return "bitwise exclusive or";
+	}
+}
+
+
+
+
+char* state26(TokenizerT* tk){
+
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "assignment operator";
+	}else{
+		tk->CopMode = 0;
+		return "modulus";
+	}
+}
+
+
+
+
+char* state25(TokenizerT* tk){
+
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "assignment operator";
+	}else{
+		tk->CopMode = 0;
+		return "indirect";
+	}
+}
+
+
+
+char* state24(TokenizerT* tk){
+
+	if(tk->currChar == '|'){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "logical or";
+	}
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "assignment operator";
+	}else{
+		tk->CopMode = 0;
+		return "vertical bar";
+	}
+}
+
+
+
+
+char* state23(TokenizerT* tk){
+
+	if(tk->currChar == '&'){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "logical and";
+	}
+	if(tk->currChar == '='){
+		tk->currChar = nextChar(tk);
+		tk->CopMode = 0;
+		return "assignment operator";
+	}else{
+		tk->CopMode = 0;
+		return "ampersand";
 	}
 }
 
@@ -325,7 +434,6 @@ char* state17(TokenizerT* tk){
 char* state16(TokenizerT* tk){
 
 	printf("In state16\n");
-	//tk->currChar = nextChar(tk);
 
 	if(tk->currChar == '>'){
 		tk->currChar = nextChar(tk);	
@@ -361,6 +469,14 @@ char* state16(TokenizerT* tk){
 											tk->CopMode 	= 	1;
 											//tk->currChar 	= nextChar(tk);
 
+											if(tk->currChar == '\\'){
+												tk->currChar = nextChar(tk);
+												return state29(tk);
+
+
+											}
+
+
 
 											if(tk->currChar == '-'){
 												tk->currChar = nextChar(tk);
@@ -387,16 +503,120 @@ char* state16(TokenizerT* tk){
 												return state22(tk);
 											}
 
-											if(tk->currChar == '!'){
+											if(tk->currChar == '&'){
 												tk->currChar = nextChar(tk);
 												return state23(tk);
+											}
+
+											if(tk->currChar == '|'){
+												tk->currChar = nextChar(tk);
+												return state24(tk);
+											}
+
+											if(tk->currChar == '*'){
+												tk->currChar = nextChar(tk);
+												return state25(tk);
+											}
+
+
+											if(tk->currChar == '%'){
+												tk->currChar = nextChar(tk);
+												return state26(tk);
+											}
+
+
+											if(tk->currChar == '^'){
+												tk->currChar = nextChar(tk);
+												return state27(tk);
+											}
+
+											if(tk->currChar == '/'){
+												tk->currChar = nextChar(tk);
+												return state28(tk);
+											}
+
+											if(tk->currChar == '.'){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "structure member";
+											}
+
+
+											if(tk->currChar == '~'){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "1's complement";
+											}
+
+											if(tk->currChar == '?'){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "question mark";
+											}
+
+											if(tk->currChar == ':'){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "colon";
+											}
+
+											if(tk->currChar == ','){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "comma operator";
+											}
+
+											if(tk->currChar == '('){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "left parenthesis";
+											}
+
+											if(tk->currChar == ')'){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "right parenthesis";
+											}
+
+											if(tk->currChar == '['){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "right brace";
+											}
+
+											if(tk->currChar == ']'){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "left brace";
+											}
+
+											if(tk->currChar == '#'){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "number sign";
+											}
+
+											if(tk->currChar == '{'){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "right curly brace";
+											}
+
+											if(tk->currChar == '}'){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "left curly brace";
+											}
+								
+											if(tk->currChar == ';'){
+												tk->currChar = nextChar(tk);
+												tk->CopMode = 0;
+												return "semicolon";
 											}
 
 											return "C token";
 
 										}
-
-
 
 
 
@@ -493,7 +713,12 @@ char* state10(TokenizerT* tk){
 char* state9(TokenizerT* tk){
 
 	if(isdigit(tk->currChar)){
-		tk->currChar = nextChar(tk);
+		if(tk->inputCopy[tk->parsingIndex+1] == '.'){
+			tk->parsingIndex++;
+			tk->currChar = tk->inputCopy[tk->parsingIndex];
+		}else
+			tk->currChar = nextChar(tk);
+			
 		return state9(tk);
 	}
 	if(tk->currChar == '.'){
@@ -713,6 +938,11 @@ char* state0(TokenizerT* tk){
 	}
 
 
+	if(isEscape(tk->currChar, tk)){
+		printf("~~Found escape.\n");
+		tk->parsingIndex++;
+		return "escape character";
+	}
 
 
 	if(isOpChar(tk->currChar)){
@@ -900,6 +1130,7 @@ TokenizerT *TKCreate( char * ts ) {
 	tokenizer->startIndex	= 0;
 	tokenizer->currChar		= 0;
 	tokenizer->CopMode		= 0;
+	tokenizer->escapedTok	= 0;
 
 	printf("The tokenizer was initialized.\n");
 
@@ -939,14 +1170,28 @@ char *TKGetNextToken( TokenizerT * tk ) {
 
 
 		if(tk->parsingIndex != tk->startIndex){	
+
+			printf("Made it here\n");
 			
+
+			if(strcmp(tk->type, "escape character") == 0){
+				printf("ESCAPEPDEPDPEPDEPDED\n");
+				tk->token = (char*)realloc(tk->token,(7));
+				strcpy(tk->token, tk->escapedTok);
+				//tk->token = tk->escapedTok;
+				//tk->token[6] = '\0';
+				tk->escapedTok = 0;
+
+			}else{
+
+
 			/* Dynamic allocation for token */
 			size 		= tk->parsingIndex - tk->startIndex;
 			tk->token 	= (char*)realloc(tk->token,(size+1));
 			startAddr	= tk->startIndex;
 
 			memcpy(tk->token, &tk->inputCopy[startAddr],size);
-			tk->token[size] = '\0';
+			tk->token[size] = '\0';}
 
 		}else{
 			printf("\tEmpty token\n");
