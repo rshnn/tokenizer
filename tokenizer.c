@@ -264,7 +264,7 @@ char nextChar(TokenizerT* tk){
 
 /* 
 	FINITE STATE MACHINE
-		Implementation of the interpreter is done via a fsm.  Diagram included in README.pdf
+		Implementation of the interpreter is done via a fsm.  Descriptions in README.pdf
 		States 1 - 14 interpret non-C operators.
 		States 15-30 interpret C operators.
 		30 total states.		
