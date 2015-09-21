@@ -1024,12 +1024,11 @@ char nextChar(TokenizerT* tk){
 /* 
 	This function will print the information of a token in standard output for debugging purposes.
 */
-void printToken1(TokenizerT* ts){
+void printTokStruct(TokenizerT* ts){
 
-	printf("\n\n\t-------------PRINTING\n\t The full input: '%s'\n", ts->inputCopy);
+	printf("\n\n\t------PRINTING\n\t The full input: '%s'\n", ts->inputCopy);
 	printf("\t The token is: '%s' of length %lu and of type: '%s' %lu\n",ts->token, strlen(ts->token), ts->type, strlen(ts->type));
 	printf("\t The parsing index is ( %i )\n", ts->parsingIndex);
-	printf("\t---------------------------------\n\n");
 	
 
 }
@@ -1040,15 +1039,9 @@ void printToken1(TokenizerT* ts){
 void printToken(TokenizerT* tk){
 
 	if(tk->token != 0 && tk->type != 0)
-		printf("%s \"%s\"\n",tk->type, tk->token);
+		printf("\t%s \"%s\"\n",tk->type, tk->token);
 
 }
-
-
-
-
-
-
 
 
 
@@ -1217,7 +1210,6 @@ int main(int argc, char **argv) {
 	/* Free dynamically allocated memory. */
 	TKDestroy(tokenizer);
 
-	printf("Successful exit.\n");
   	return 0;
 }
 
